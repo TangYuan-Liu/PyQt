@@ -14,11 +14,11 @@
 2.下载[PyQt4](https://sourceforge.net/projects/pyqt/files/PyQt4/)安装程序，注意看清支持的Python版本与系统位数。
 <div align="center">
 <img style="flex-grow:1; flex-shrink:1; border: 1px solid black;" src="./pyqt4.PNG" width="600" alt="wsl" />
-</div>上图即为WSL安装配置成功后的界面。
+</div>  
 3.按向导步骤进行安装即可。
 
 #### CHECK
 启动Python后，如下图所示，导入成功即可。
 <div align="center">
 <img style="flex-grow:1; flex-shrink:1; border: 1px solid black;" src="./check.PNG" width="600" alt="wsl" />
-</div>上图即为WSL安装配置成功后的界面。
+</div>
