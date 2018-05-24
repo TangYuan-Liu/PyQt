@@ -12,12 +12,12 @@ class PWKeeper(QtGui.QMainWindow):
     def __init__(self):
         super(PWKeeper, self).__init__()
         self.initToolbar()
-        self.initDB()
         self.initGrid()
         self.current_row = 0
         self.setGeometry(300,300,650,300)
         self.setWindowTitle("PWKeeper")
         self.setWindowIcon(QtGui.QIcon("icon.png"))
+        self.initDB()
 
     def initToolbar(self):
         newAction = QtGui.QAction(QtGui.QIcon("new.png"),"New",self)
@@ -36,9 +36,7 @@ class PWKeeper(QtGui.QMainWindow):
         self.tb_edit.addAction(editAction)
         self.tb_del.addAction(delAction)
 
-    def initDB(self):
-
-        pass
+    
 
     def initGrid(self):
         self.grid = QtGui.QTableWidget()
@@ -118,19 +116,23 @@ class PWKeeper(QtGui.QMainWindow):
 
     def newAction_def(self):
         data = self.showDialog()
+        c = self.conn.cursor()
         if data[0]:
             self.current_row += 1
             self.grid.insertRow(self.current_row - 1)
-            
-            self.conn.execute("INSERT INTO INFO VALUES(%d,'%s','%s','%s','%s')"
-                              % (self.current_row, data[1], data[2], data[3], data[4]))
-            
             for i in range(4):
                 new_item = QtGui.QTableWidgetItem(data[i + 1])
                 self.grid.setItem(self.current_row - 1, i, new_item)
+            
+            c.execute("INSERT INTO INFO (ID,WEBSITE,USERNAME,PASSWORD,URL) VALUES (%d,'%s','%s','%s','%s')" %(self.current_row, data[1], data[2], data[3], data[4]))     
+            #c.execute("INSERT INTO INFO (ID,WEBSITE,USERNAME,PASSWORD,URL) VALUES (1,'baidu','sdfs','sdfsd','asdfsdf')")
+            self.conn.commit()
+            
+            
  
     def editAction_def(self):
         selected_row = self.grid.selectedItems()
+        c = self.conn.cursor()
         if selected_row:
             edit_row = self.grid.row(selected_row[0])
             old_data = []
@@ -139,24 +141,23 @@ class PWKeeper(QtGui.QMainWindow):
             new_data = self.showDialog(*old_data)
 
             if new_data[0]:
-                self.conn.execute( '''UPDATE INFO SET
-                                  WEBSET = '%s', USERNAME = '%s',
-                                  PASSWORD = '%s', URL = '%s'
-                                  WHERE ID = '%d' '''
-                                   % (new_data[1], new_data[2], new_data[3], new_data[4], edit_row + 1))
                 for i in range(4):
                     new_item = QtGui.QTableWidgetItem(new_data[i+1])
                     self.grid.setItem(edit_row, i, new_item)
+                c.execute("UPDATE INFO SET WEBSITE = '%s',USERNAME = '%s',PASSWORD = '%s',URL = '%s' WHERE ID = '%d'" %(new_data[1],new_data[2],new_data[3],new_data[4],edit_row+1))
+                #c.execute("UPDATE INFO SET WEBSITE = 'csrc',USERNAME='mama',PASSWORD='mama',URL='SS' WHERE ID=3")
+                self.conn.commit()
+                
             else:
                 self.showHint()
 
     def delAction_def(self):
         selected_row = self.grid.selectedItems()
+        c = self.conn.cursor()
         if selected_row:
             del_row = self.grid.row(selected_row[0])
             self.grid.removeRow(del_row)
-            print del_row
-            self.conn.execute("DELETE FROM INFO WHERE ID = %d" % (del_row + 1))
+            c.execute("DELETE FROM INFO WHERE ID = %d" % (del_row + 1))
             for index in range(del_row + 2, self.current_row + 1):
                 self.conn.execute("UPDATE INFO SET ID = %d WHERE ID = %d" %((index - 1), index))
             self.current_row -= 1
@@ -165,25 +166,47 @@ class PWKeeper(QtGui.QMainWindow):
 
     def initDB(self):
         if os.path.exists("info.db"):
+            
+            print("Find database")
             self.conn = sqlite3.connect("info.db")    
             self.conn.isolation_level = None
+            self.initWindow()
+            
+               
+            
+            
+            
+        else:
+            self.conn = sqlite3.connect("info.db")
+            self.conn.isolation_level = None
+            c = self.conn.cursor()
+            c.execute('''CREATE TABLE INFO(ID int PRIMARY KEY NOT NULL,WEBSITE char(255),USERNAME char(255),PASSWORD char(255),URL char(255));''')
+            """
             cur = self.conn.cursor()
             cur.execute("SELECT * FROM INFO")
             self.displayData = cur.fetchall()
             cur.close()
             self.current_row = len(self.displayData)
-        else:
-            self.conn = sqlite3.connect("info.db")
-            self.conn.isolation_level = None
-            self.conn.execute('''CREATE TABLE INFO
-                              (ID int PRIMARY KEY NOT NULL,
-                               WEBSITE char(255),
-                               USERNAME char(255),
-                               PASSWORD char(255),
-                               URL char(255));''')
+            
+            """
             self.conn.commit()
 
-            
+
+    def initWindow(self):
+        c = self.conn.cursor()
+        table = c.execute("SELECT ID,WEBSITE,USERNAME,PASSWORD,URL from INFO")
+        
+        history = []
+        for row in table:
+            history.append(row)
+        
+        for i in range(len(history)):
+            self.grid.insertRow(i)
+            data = history[i]
+            for j in range(4):
+                new_item = QtGui.QTableWidgetItem(data[j+1])
+                self.grid.setItem(i, j, new_item)
+        self.current_row = len(history)
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
