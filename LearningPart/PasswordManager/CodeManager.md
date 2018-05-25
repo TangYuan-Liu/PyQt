@@ -1,6 +1,6 @@
-# Password Manager
+# Code Manager
 ### INTRODUCTION
-PassWord Manager是一款用于管理个人密码的小程序，为用户提供了一个简单的密码管理功能。
+Code Manager是一款用于管理个人密码的小程序，为用户提供了一个简单的密码管理功能。
 ### PREPARATION
 环境搭建：  
 1.Python2.7  
