@@ -6,7 +6,7 @@ PassWord Manager是一款用于管理个人密码的小程序，为用户提供�
 1.Python2.7  
 2.PyQt4
 3.Pyinstallter  
-4.SQ
+4.SQLite3
 ### MODULE INTRODUCTION
 软件功能模块分为三部分：   
 1.GUI前端界面  
